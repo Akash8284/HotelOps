@@ -1,5 +1,7 @@
 import { useState } from "react";
+
 import axios from "axios";
+
 import { useNavigate } from "react-router-dom";
 
 const Login = () => {
@@ -14,6 +16,8 @@ const Login = () => {
 
   const [password, setPassword] = useState("");
 
+  const [role, setRole] = useState("WORKER");
+
   const handleSubmit = async (e) => {
 
     e.preventDefault();
@@ -23,7 +27,7 @@ const Login = () => {
       if (isLogin) {
 
         const response = await axios.post(
-          "http://localhost:5000/users/login",
+          `${import.meta.env.VITE_API_URL}/users/login`,
           {
             email,
             password
@@ -35,21 +39,39 @@ const Login = () => {
           response.data.token
         );
 
-        navigate("/dashboard");
+        localStorage.setItem(
+          "role",
+          response.data.role
+        );
+
+        localStorage.setItem(
+          "name",
+          response.data.name
+        );
+
+        if (response.data.role === "ADMIN") {
+
+          navigate("/admin-dashboard");
+
+        } else {
+
+          navigate("/worker-dashboard");
+
+        }
 
       } else {
 
         await axios.post(
-          "http://localhost:5000/users",
+          `${import.meta.env.VITE_API_URL}/users`,
           {
             name,
             email,
             password,
-            role: "STAFF"
+            role
           }
         );
 
-        alert("Account Created Successfully");
+        alert("Account created successfully");
 
         setIsLogin(true);
 
@@ -69,11 +91,7 @@ const Login = () => {
 
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center bg-black">
 
-      {/* Animated Gradient Background */}
-
       <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-black to-purple-950 animate-gradient opacity-90"></div>
-
-      {/* Ambient Blobs */}
 
       <div className="absolute w-[500px] h-[500px] bg-purple-600 rounded-full blur-3xl opacity-20 animate-blob top-[-100px] left-[-100px]"></div>
 
@@ -81,9 +99,7 @@ const Login = () => {
 
       <div className="absolute w-[400px] h-[400px] bg-pink-600 rounded-full blur-3xl opacity-20 animate-blob animation-delay-4000 top-[40%] left-[40%]"></div>
 
-      {/* Login Card */}
-
-      <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-[0_0_50px_rgba(139,92,246,0.3)] p-10 w-[400px] text-white relative z-10">
+      <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-[0_0_50px_rgba(139,92,246,0.3)] p-10 w-[420px] text-white relative z-10">
 
         <h1 className="text-5xl font-bold text-center mb-3">
           HotelOps
@@ -98,13 +114,31 @@ const Login = () => {
           {
             !isLogin && (
 
-              <input
-                type="text"
-                placeholder="Full Name"
-                className="w-full p-4 rounded-xl bg-white/10 border border-white/20 mb-4 outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/40 transition"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
+              <>
+                <input
+                  type="text"
+                  placeholder="Full Name"
+                  className="w-full p-4 rounded-xl bg-white/10 border border-white/20 mb-4 outline-none"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+
+                <select
+                  className="w-full p-4 rounded-xl bg-white/10 border border-white/20 mb-4 outline-none"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                >
+
+                  <option value="WORKER">
+                    Worker
+                  </option>
+
+                  <option value="ADMIN">
+                    Admin
+                  </option>
+
+                </select>
+              </>
 
             )
           }
@@ -112,7 +146,7 @@ const Login = () => {
           <input
             type="email"
             placeholder="Email Address"
-            className="w-full p-4 rounded-xl bg-white/10 border border-white/20 mb-4 outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/40 transition"
+            className="w-full p-4 rounded-xl bg-white/10 border border-white/20 mb-4 outline-none"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -120,14 +154,14 @@ const Login = () => {
           <input
             type="password"
             placeholder="Password"
-            className="w-full p-4 rounded-xl bg-white/10 border border-white/20 mb-6 outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/40 transition"
+            className="w-full p-4 rounded-xl bg-white/10 border border-white/20 mb-6 outline-none"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
 
           <button
             type="submit"
-            className="w-full bg-white text-black font-semibold p-4 rounded-xl hover:bg-gray-200 hover:scale-105 transition duration-300"
+            className="w-full bg-white text-black font-semibold p-4 rounded-xl hover:bg-gray-200 transition duration-300"
           >
 
             {

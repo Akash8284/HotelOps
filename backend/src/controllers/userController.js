@@ -1,13 +1,26 @@
 const jwt = require("jsonwebtoken");
+
 const bcrypt = require("bcrypt");
 
 const prisma = require("../config/prisma");
 
 const getUsers = async (req, res) => {
 
-  const users = await prisma.user.findMany();
+  try {
 
-  res.json(users);
+    const users = await prisma.user.findMany();
+
+    res.json(users);
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.status(500).json({
+      message: error.message
+    });
+
+  }
 
 };
 
@@ -16,16 +29,18 @@ const createUser = async (req, res) => {
   try {
 
     const {
-  name,
-  email,
-  password,
-  role
-} = req.body;
+      name,
+      email,
+      password,
+      role
+    } = req.body;
 
     if (!name || !email || !password) {
+
       return res.status(400).json({
         message: "All fields are required"
       });
+
     }
 
     const existingUser = await prisma.user.findUnique({
@@ -35,12 +50,17 @@ const createUser = async (req, res) => {
     });
 
     if (existingUser) {
+
       return res.status(400).json({
         message: "Email already exists"
       });
+
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(
+      password,
+      10
+    );
 
     const user = await prisma.user.create({
       data: {
@@ -55,13 +75,13 @@ const createUser = async (req, res) => {
 
   } catch (error) {
 
-  console.log(error);
+    console.log(error);
 
-  res.status(500).json({
-    message: error.message
-  });
+    res.status(500).json({
+      message: error.message
+    });
 
-}
+  }
 
 };
 
@@ -69,7 +89,10 @@ const loginUser = async (req, res) => {
 
   try {
 
-    const { email, password } = req.body;
+    const {
+      email,
+      password
+    } = req.body;
 
     const user = await prisma.user.findUnique({
       where: {
@@ -78,9 +101,11 @@ const loginUser = async (req, res) => {
     });
 
     if (!user) {
+
       return res.status(400).json({
         message: "User not found"
       });
+
     }
 
     const isPasswordCorrect = await bcrypt.compare(
@@ -89,15 +114,18 @@ const loginUser = async (req, res) => {
     );
 
     if (!isPasswordCorrect) {
+
       return res.status(400).json({
         message: "Invalid password"
       });
+
     }
 
     const token = jwt.sign(
       {
         userId: user.id,
-        role: user.role
+        role: user.role,
+        name: user.name
       },
       "secretkey",
       {
@@ -107,16 +135,19 @@ const loginUser = async (req, res) => {
 
     res.json({
       message: "Login successful",
-      token
+      token,
+      role: user.role,
+      name: user.name
     });
 
   } catch (error) {
 
-   console.log(error);
+    console.log(error);
 
-res.status(500).json({
-  message: error.message
-});
+    res.status(500).json({
+      message: error.message
+    });
+
   }
 
 };

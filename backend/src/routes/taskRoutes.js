@@ -1,26 +1,61 @@
-const adminMiddleware = require("../middlewares/adminMiddleware");
-
-const authMiddleware = require("../middlewares/authMiddleware");
-
 const express = require("express");
 
 const router = express.Router();
 
 const {
-  createTask,
   getTasks,
-  updateTaskStatus
+  createTask,
+  acceptTask,
+  completeTask,
+  getWorkerHistory
 } = require("../controllers/taskController");
+
+const authMiddleware = require("../middlewares/authMiddleware");
+
+router.get(
+  "/",
+  authMiddleware,
+  getTasks
+);
+
+router.get(
+  "/history",
+  authMiddleware,
+  getWorkerHistory
+);
 
 router.post(
   "/",
   authMiddleware,
-  adminMiddleware,
+  createTask
+);
+router.put(
+  "/accept/:id",
+  authMiddleware,
+  acceptTask
+);
+router.get(
+  "/",
+  authMiddleware,
+  getTasks
+);
+
+router.post(
+  "/",
+  authMiddleware,
   createTask
 );
 
-router.get("/", authMiddleware, getTasks);
+router.put(
+  "/accept/:id",
+  authMiddleware,
+  acceptTask
+);
 
-router.put("/:id", authMiddleware, adminMiddleware, updateTaskStatus);
+router.put(
+  "/complete/:id",
+  authMiddleware,
+  completeTask
+);
 
 module.exports = router;

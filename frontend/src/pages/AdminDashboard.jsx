@@ -4,13 +4,11 @@ import axios from "axios";
 
 import { useNavigate } from "react-router-dom";
 
-const Dashboard = () => {
+const AdminDashboard = () => {
 
   const navigate = useNavigate();
 
   const [tasks, setTasks] = useState([]);
-
-  const [history, setHistory] = useState([]);
 
   const [showModal, setShowModal] = useState(false);
 
@@ -20,14 +18,13 @@ const Dashboard = () => {
 
   const [department, setDepartment] = useState("");
 
-  const [assignedTo, setAssignedTo] = useState("");
-
   const [priority, setPriority] = useState("");
+
+  const name = localStorage.getItem("name");
 
   useEffect(() => {
 
     fetchTasks();
-    fetchWorkerHistory();
 
   }, []);
 
@@ -70,7 +67,6 @@ const Dashboard = () => {
           title,
           description,
           department,
-          assignedTo,
           priority
         },
         {
@@ -85,36 +81,7 @@ const Dashboard = () => {
       setTitle("");
       setDescription("");
       setDepartment("");
-      setAssignedTo("");
       setPriority("");
-
-      fetchTasks();
-
-    } catch (error) {
-
-      console.log(error);
-
-    }
-
-  };
-
-  const updateStatus = async (id, status) => {
-
-    try {
-
-      const token = localStorage.getItem("token");
-
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/tasks/${id}`,
-        {
-          status
-        },
-        {
-          headers: {
-            Authorization: token
-          }
-        }
-      );
 
       fetchTasks();
 
@@ -128,44 +95,11 @@ const Dashboard = () => {
 
   const logout = () => {
 
-    localStorage.removeItem("token");
+    localStorage.clear();
 
     navigate("/");
 
   };
-
-  const totalTasks = tasks.length;
-
-  const pendingTasks = tasks.filter(
-    (task) => task.status === "PENDING"
-  ).length;
-
-  const completedTasks = tasks.filter(
-    (task) => task.status === "COMPLETED"
-  ).length;
-
-  const inProgressTasks = tasks.filter(
-    (task) => task.status === "IN_PROGRESS"
-  ).length;
-
-  const stats = [
-    {
-      title: "Total Tasks",
-      value: totalTasks
-    },
-    {
-      title: "Pending",
-      value: pendingTasks
-    },
-    {
-      title: "Completed",
-      value: completedTasks
-    },
-    {
-      title: "In Progress",
-      value: inProgressTasks
-    }
-  ];
 
   return (
 
@@ -187,20 +121,8 @@ const Dashboard = () => {
 
         <div className="space-y-4">
 
-          <button className="w-full text-left bg-purple-600 hover:bg-purple-700 transition p-4 rounded-2xl font-semibold">
-            Dashboard
-          </button>
-
-          <button className="w-full text-left hover:bg-white/10 transition p-4 rounded-2xl">
-            Tasks
-          </button>
-
-          <button className="w-full text-left hover:bg-white/10 transition p-4 rounded-2xl">
-            Staff
-          </button>
-
-          <button className="w-full text-left hover:bg-white/10 transition p-4 rounded-2xl">
-            Reports
+          <button className="w-full text-left bg-purple-600 p-4 rounded-2xl font-semibold">
+            Admin Dashboard
           </button>
 
         </div>
@@ -223,57 +145,28 @@ const Dashboard = () => {
           <div>
 
             <h2 className="text-5xl font-bold">
-              Dashboard
+              Admin Dashboard
             </h2>
 
             <p className="text-gray-400 mt-3">
-              Welcome back, Admin 👋
+              Welcome back {name} 👋
             </p>
 
           </div>
 
           <button
             onClick={() => setShowModal(true)}
-            className="bg-purple-600 hover:bg-purple-700 transition px-8 py-4 rounded-2xl font-semibold shadow-lg"
+            className="bg-purple-600 hover:bg-purple-700 transition px-8 py-4 rounded-2xl font-semibold"
           >
             + Create Task
           </button>
 
         </div>
 
-        {/* Stats */}
-
-        <div className="grid grid-cols-4 gap-6 mb-10">
-
-          {
-            stats.map((item, index) => (
-
-              <div
-                key={index}
-                className="bg-white/10 border border-white/10 backdrop-blur-xl rounded-3xl p-6 shadow-[0_0_30px_rgba(139,92,246,0.15)]"
-              >
-
-                <h3 className="text-gray-300 text-lg">
-                  {item.title}
-                </h3>
-
-                <p className="text-5xl font-bold mt-4">
-                  {item.value}
-                </p>
-
-              </div>
-
-            ))
-          }
-
-        </div>
-
-        {/* Table */}
-
         <div className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl p-8">
 
           <h2 className="text-3xl font-bold mb-8">
-            Recent Tasks
+            All Tasks
           </h2>
 
           <table className="w-full">
@@ -284,13 +177,15 @@ const Dashboard = () => {
 
                 <th className="pb-5">Task</th>
 
-                <th className="pb-5">Department</th>
-
-                <th className="pb-5">Assigned</th>
+                <th className="pb-5">Assigned To</th>
 
                 <th className="pb-5">Priority</th>
 
                 <th className="pb-5">Status</th>
+
+                <th className="pb-5">Started</th>
+
+                <th className="pb-5">Completed</th>
 
               </tr>
 
@@ -303,63 +198,44 @@ const Dashboard = () => {
 
                   <tr
                     key={task.id}
-                    className="border-b border-white/5 hover:bg-white/5 transition"
+                    className="border-b border-white/5"
                   >
 
-                    <td className="py-6 text-lg">
+                    <td className="py-6">
                       {task.title}
                     </td>
 
                     <td>
-                      {task.department}
+                      {task.assignedTo || "Unassigned"}
                     </td>
 
                     <td>
-                      {task.assignedTo}
+                      {task.priority}
+                    </td>
+
+                    <td>
+                      {task.status}
                     </td>
 
                     <td>
 
-                      <span className={`
-                        px-4 py-2 rounded-full text-sm font-semibold
-                        ${
-                          task.priority === "HIGH"
-                            ? "bg-red-500/20 text-red-400"
-                            : task.priority === "MEDIUM"
-                            ? "bg-yellow-500/20 text-yellow-400"
-                            : "bg-green-500/20 text-green-400"
-                        }
-                      `}>
-
-                        {task.priority}
-
-                      </span>
+                      {
+                        task.startedAt
+                          ? new Date(task.startedAt)
+                              .toLocaleString()
+                          : "-"
+                      }
 
                     </td>
 
                     <td>
 
-                      <select
-                        value={task.status}
-                        onChange={(e) =>
-                          updateStatus(task.id, e.target.value)
-                        }
-                        className="bg-white/10 border border-white/10 rounded-xl px-4 py-2 outline-none"
-                      >
-
-                        <option value="PENDING">
-                          PENDING
-                        </option>
-
-                        <option value="IN_PROGRESS">
-                          IN PROGRESS
-                        </option>
-
-                        <option value="COMPLETED">
-                          COMPLETED
-                        </option>
-
-                      </select>
+                      {
+                        task.completedAt
+                          ? new Date(task.completedAt)
+                              .toLocaleString()
+                          : "-"
+                      }
 
                     </td>
 
@@ -373,113 +249,6 @@ const Dashboard = () => {
           </table>
 
         </div>
-
-        <div className="mt-14">
-
-  <h2 className="text-4xl font-bold mb-8">
-    My Task History
-  </h2>
-
-  <div className="grid gap-6">
-
-    {
-      history.map((task) => (
-
-        <div
-          key={task.id}
-          className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl p-6"
-        >
-
-          <div className="flex justify-between items-center">
-
-            <div>
-
-              <h3 className="text-2xl font-bold">
-                {task.title}
-              </h3>
-
-              <p className="text-gray-400 mt-2">
-                {task.description}
-              </p>
-
-            </div>
-
-            <div className="text-right">
-
-              <p className="text-green-400 font-semibold">
-                COMPLETED
-              </p>
-
-            </div>
-
-          </div>
-
-          <div className="mt-6 grid grid-cols-3 gap-6 text-sm text-gray-300">
-
-            <div>
-
-              <p className="font-semibold mb-2">
-                Started
-              </p>
-
-              <p>
-                {
-                  new Date(task.startedAt)
-                    .toLocaleString()
-                }
-              </p>
-
-            </div>
-
-            <div>
-
-              <p className="font-semibold mb-2">
-                Completed
-              </p>
-
-              <p>
-                {
-                  new Date(task.completedAt)
-                    .toLocaleString()
-                }
-              </p>
-
-            </div>
-
-            <div>
-
-              <p className="font-semibold mb-2">
-                Duration
-              </p>
-
-              <p>
-
-                {
-                  Math.floor(
-                    (
-                      new Date(task.completedAt) -
-                      new Date(task.startedAt)
-                    ) / 60000
-                  )
-                }
-
-                {" "}
-                mins
-
-              </p>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      ))
-    }
-
-  </div>
-
-</div>
 
       </div>
 
@@ -548,14 +317,6 @@ const Dashboard = () => {
 
                 </select>
 
-                <input
-                  type="text"
-                  placeholder="Assigned To"
-                  className="w-full p-4 rounded-xl bg-white/10 border border-white/10 mb-4 outline-none"
-                  value={assignedTo}
-                  onChange={(e) => setAssignedTo(e.target.value)}
-                />
-
                 <select
                   className="w-full p-4 rounded-xl bg-white/10 border border-white/10 mb-6 outline-none"
                   value={priority}
@@ -602,4 +363,4 @@ const Dashboard = () => {
 
 };
 
-export default Dashboard;
+export default AdminDashboard;
