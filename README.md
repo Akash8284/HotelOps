@@ -8,10 +8,6 @@
 Smart Cloud-Based Hotel Operations Management Platform
 </h3>
 
-<h3 align="center">
-Smart Cloud-Based Hotel Operations Management Platform
-</h3>
-
 <p align="center">
 
 <img src="https://img.shields.io/badge/Frontend-React-blue?style=for-the-badge&logo=react"/>
